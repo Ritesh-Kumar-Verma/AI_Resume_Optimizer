@@ -6,48 +6,50 @@ class User_Info:
     def __init__(self):
         
         self.local_storage = LocalStorage()
-        data = self.load_data()
         
-        if data:
-            st.session_state.d = data
-            st.session_state.projects = data['projects']
-        else:
-            st.session_state.d = {
-                "basic_info": {
-                    "name": "",
-                    "phone_number": "",
-                    "email": "",
-                    "address": "",
-                    "profile_link": "",
-                    "linkedin": "",
-                    "github": "",
-                    "summary": ""
-                },
-                "technical_skill": {
-                    "programming_language": "",
-                    "frontend": "",
-                    "backend": "",
-                    "database": "",
-                    "ai_ml_data_science": "",
-                    "tools": ""
-                },
-                "education": {
-                    "institute_name": "",
-                    "degree_certificate_name": "",
-                    "location": "",
-                    "duration": ""
-                },
-                "projects": []
-                }
-            st.session_state.projects = [{
-                    "title": "",
-                    "tech_used": "",
-                    "project_year": "",
-                    "frontend_code_url": "",
-                    "backend_code_url": "",
-                    "live_link": "",
-                    "description" : ""
-                }]
+        if 'd' not in st.session_state:
+            data = self.load_data()
+            if data:
+                st.session_state.d = data
+                st.session_state.projects = data['projects']
+            else:
+                st.session_state.d = {
+                    "basic_info": {
+                        "name": "",
+                        "phone_number": "",
+                        "email": "",
+                        "address": "",
+                        "profile_link": "",
+                        "linkedin": "",
+                        "github": "",
+                        "summary": ""
+                    },
+                    "technical_skill": {
+                        "programming_language": "",
+                        "frontend": "",
+                        "backend": "",
+                        "database": "",
+                        "ai_ml_data_science": "",
+                        "tools": ""
+                    },
+                    "education": {
+                        "institute_name": "",
+                        "degree_certificate_name": "",
+                        "location": "",
+                        "duration": ""
+                    },
+                    "projects": []
+                    }
+                st.session_state.projects = []
+                # st.session_state.projects = [{
+                #         "title": "",
+                #         "tech_used": "",
+                #         "project_year": "",
+                #         "frontend_code_url": "",
+                #         "backend_code_url": "",
+                #         "live_link": "",
+                #         "description" : ""
+                #     }]
 
         # if "projects" not in st.session_state:
         
@@ -71,8 +73,8 @@ class User_Info:
         st.write(self.load_data())
     
     
-    def project_details(self,project):
-        with st.form(key=f'project_{project['title']}',clear_on_submit=True):
+    def project_details(self,project,index):
+        with st.form(key=f'project_{index}',clear_on_submit=True):
             title = st.text_input("Project Title",value=project['title'])
             tech_used = st.text_input("Technologies Used",value=project['tech_used'])
             project_year = st.text_input("Project Year",value=project['project_year'])
@@ -80,8 +82,86 @@ class User_Info:
             backend_code_url = st.text_input("Backend Code URL",value=project['backend_code_url'])
             live_link = st.text_input("Live Demo URL",value=project['live_link'])
             description = st.text_area("Enter your description",placeholder="Enter points seprated with comma",value=project['description'])
-            submitted = st.form_submit_button("Add Project")
+            submitted = st.form_submit_button("Update Project")
 
+            if submitted:
+                st.session_state.projects[index] = {
+                    "title": title,
+                    "tech_used": tech_used,
+                    "project_year": project_year,
+                    "frontend_code_url": frontend_code_url,
+                    "backend_code_url": backend_code_url,
+                    "live_link": live_link,
+                    "description" : description
+                }
+                st.session_state.d['projects'] = st.session_state.projects
+                st.success("Project updated Successfully")
+                
+                
+                
+    def display_projects(self):
+
+        st.subheader("Project Details")
+
+        if len(st.session_state.projects) == 0:
+            st.info("No projects added yet")
+            return
+
+        if "edit_project" not in st.session_state:
+            st.session_state.edit_project = None
+
+        for index, project in enumerate(st.session_state.projects):
+
+            with st.expander(
+                f"{index+1}. {project['title'] if project['title'] else 'Untitled Project'}"
+            ):
+
+                st.write("### Title")
+                st.write(project["title"])
+                st.write("### Technologies")
+                st.write(project["tech_used"])
+                st.write("### Year")
+                st.write(project["project_year"])
+                st.write("### Frontend Code")
+                st.write(project["frontend_code_url"])
+                st.write("### Backend Code")
+                st.write(project["backend_code_url"])
+                st.write("### Live Link")
+                st.write(project["live_link"])
+                st.write("### Description")
+                st.write(project["description"])
+
+                col1, col2 = st.columns(2)
+
+                with col1:
+                    if st.button("✏ Edit", key=f"edit_{index}"):
+                        st.session_state.edit_project = index
+
+                with col2:
+                    if st.button("🗑 Delete", key=f"delete_{index}"):
+
+                        st.session_state.projects.pop(index)
+                        st.session_state.d["projects"] = st.session_state.projects
+
+                        if st.session_state.edit_project == index:
+                            st.session_state.edit_project = None
+
+                        st.rerun()
+
+                if st.session_state.edit_project == index:
+                    self.project_details(project, index)   
+                
+                
+    def add_project(self):
+        with st.form(key='project_',clear_on_submit=True):
+            title = st.text_input("Project Title")
+            tech_used = st.text_input("Technologies Used")
+            project_year = st.text_input("Project Year")
+            frontend_code_url = st.text_input("Frontend Code URL")
+            backend_code_url = st.text_input("Backend Code URL")
+            live_link = st.text_input("Live Demo URL")
+            description = st.text_area("Enter your description",placeholder="Enter points seprated with comma")
+            submitted = st.form_submit_button("Add Project")
             if submitted:
                 st.session_state.projects.append({
                     "title": title,
@@ -92,7 +172,11 @@ class User_Info:
                     "live_link": live_link,
                     "description" : description
                 })
+                st.session_state.d['projects'] = st.session_state.projects
                 st.success("Project added Successfully")
+                st.session_state.show_project_form = False
+                st.rerun()
+                
         
     def user_info(self):
         
@@ -102,7 +186,6 @@ class User_Info:
         
         #####Basic Info#####
         basic_info = dict()
-        # st.write(st.session_state.d)
         with basic_left_col:
             basic_info['name'] = st.text_input("Enter your name",value=st.session_state.d['basic_info']['name'])
             basic_info['phone_number'] = st.text_input("Enter your phone number",value=st.session_state.d['basic_info']['phone_number'])
@@ -171,21 +254,25 @@ class User_Info:
         #####Project Info#####
 
         
-        st.subheader("Project Details")
+        # st.subheader("Project Details")
         
-        for project in st.session_state.projects:
-            self.project_details(project)
+        if "show_project_form" not in st.session_state:
+            st.session_state.show_project_form = False
+
+        if st.button("Add Project"):
+            st.session_state.show_project_form = True
+
+        if st.session_state.show_project_form:
+            self.add_project()
             
-            
-            
-        
-        
-        
-        
-        
+
+        self.display_projects()
+                
+                
+
         
         if st.button("Create Resume"):
             st.write(st.session_state.d)
-            self.save_data()
+            # self.save_data()
             
-            
+
