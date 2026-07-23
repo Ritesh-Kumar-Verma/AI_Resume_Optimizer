@@ -481,6 +481,7 @@ class User_Info:
         
         self.job_description()
         
+        resume_name = st.text_input("Enter Name for Resume")
                   
         if st.button("Create Resume"):
             
@@ -488,8 +489,9 @@ class User_Info:
             # st.write(st.session_state.d)
             self.save_data()
             
+            
              
             resume_creator = Create_Resume(st.session_state.d,st.session_state.jd)
             resume_creator.create_resume(
-                output_file="Abz.pdf"
+                output_file=resume_name
             )
