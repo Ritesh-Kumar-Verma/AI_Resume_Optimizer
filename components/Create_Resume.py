@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 from components.Resume_pdf import ResumePDFBuilder
 import json
 
-import streamlit as st
 
 
 
@@ -58,9 +57,9 @@ class Create_Resume:
         data = data.replace("```json", "")
         data = data.replace("```", "")
         data = data.strip()
-        print("=================================================================")
-        print(data)
-        print("=================================================================")
+        # print("=================================================================")
+        # print(data)
+        # print("=================================================================")
         try:
             resume = json.loads(data)
         except json.JSONDecodeError:

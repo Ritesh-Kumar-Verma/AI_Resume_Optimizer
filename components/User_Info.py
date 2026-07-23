@@ -35,16 +35,20 @@ class User_Info:
                         "ai_ml_data_science": "",
                         "tools": ""
                     },
-                    "education": {
-                        "institute_name": "",
-                        "degree_certificate_name": "",
-                        "location": "",
-                        "duration": ""
-                    },
+                    "education": [],
                     "projects": [],
                     "certifications" : []
                     }
                 st.session_state.projects = []
+                st.session_state.educations = []
+                
+                # for reference
+                # education = {
+                #         "institute_name": "",
+                #         "degree_certificate_name": "",
+                #         "location": "",
+                #         "duration": ""
+                #     }
                 # st.session_state.projects = [{
                 #         "title": "",
                 #         "tech_used": "",
@@ -76,17 +80,106 @@ class User_Info:
         
     def display_details(self):
         st.write(self.load_data())
-    
-    
-    def project_details(self,project,index):
-        with st.form(key=f'project_{index}',clear_on_submit=True):
-            title = st.text_input("Project Title",value=project['title'])
-            tech_used = st.text_input("Technologies Used",value=project['tech_used'])
-            project_year = st.text_input("Project Year",value=project['project_year'])
-            frontend_code_url = st.text_input("Frontend Code URL",value=project['frontend_code_url'])
-            backend_code_url = st.text_input("Backend Code URL",value=project['backend_code_url'])
-            live_link = st.text_input("Live Demo URL",value=project['live_link'])
-            description = st.text_area("Enter your description",placeholder="Enter points seprated with comma",value=project['description'])
+        
+    def education_details(self, education, index):
+        with st.form(key=f'education_{index}', clear_on_submit=False):
+            college = st.text_input("Institute/College Name", value=education.get('college', ''))
+            location = st.text_input("Location", value=education.get('location', ''))
+            degree = st.text_input("Degree/Certificate Name", value=education.get('degree', ''))
+            year = st.text_input("Duration/Year (e.g., 2019-2023)", value=education.get('year', ''))
+            
+            submitted = st.form_submit_button("Update Education")
+
+            if submitted:
+                st.session_state.educations[index] = {
+                    "college": college,
+                    "location": location,
+                    "degree": degree,
+                    "year": year
+                }
+                st.session_state.d['education'] = st.session_state.educations
+                st.success("Education updated Successfully")
+                st.rerun()
+    def render_education_section(self):
+        st.subheader("Education Details")
+
+   
+        if 'educations' not in st.session_state:
+            st.session_state.educations = st.session_state.d.get('education', [])
+            
+            
+            
+        with st.expander("➕ Add New Education", expanded=False):
+            with st.form(key="add_new_education", clear_on_submit=True):
+                college = st.text_input("Institute/College Name")
+                location = st.text_input("Location")
+                degree = st.text_input("Degree/Certificate Name")
+                year = st.text_input("Duration/Year (e.g., 2019-2023)")
+                
+                add_submitted = st.form_submit_button("Add Education")
+
+                if add_submitted:
+                    new_edu = {
+                        "college": college,
+                        "location": location,
+                        "degree": degree,
+                        "year": year
+                    }
+                    st.session_state.educations.append(new_edu)
+                    st.session_state.d['education'] = st.session_state.educations
+                    st.success("Education added successfully!")
+                    st.rerun()
+
+        # Edit Existing Education Entries
+        if st.session_state.educations:
+            for idx, edu in enumerate(st.session_state.educations):
+                with st.expander(f"🎓 {edu.get('college', f'Education #{idx+1}')}", expanded=False):
+                    self.education_details(edu, idx)
+                    
+                    # Delete button for each item
+                    if st.button("Delete Education", key=f"delete_edu_{idx}"):
+                        st.session_state.educations.pop(idx)
+                        st.session_state.d['education'] = st.session_state.educations
+                        st.rerun()
+    def project_details(self, project, index):
+        """Form to edit an existing project."""
+        with st.form(key=f'edit_project_form_{index}', clear_on_submit=False):
+            title = st.text_input(
+                "Project Title", 
+                value=project.get('title', ''), 
+                key=f"edit_proj_title_{index}"
+            )
+            tech_used = st.text_input(
+                "Technologies Used", 
+                value=project.get('tech_used', ''), 
+                key=f"edit_proj_tech_{index}"
+            )
+            project_year = st.text_input(
+                "Project Year", 
+                value=project.get('project_year', ''), 
+                key=f"edit_proj_year_{index}"
+            )
+            frontend_code_url = st.text_input(
+                "Frontend Code URL", 
+                value=project.get('frontend_code_url', ''), 
+                key=f"edit_proj_fe_{index}"
+            )
+            backend_code_url = st.text_input(
+                "Backend Code URL", 
+                value=project.get('backend_code_url', ''), 
+                key=f"edit_proj_be_{index}"
+            )
+            live_link = st.text_input(
+                "Live Demo URL", 
+                value=project.get('live_link', ''), 
+                key=f"edit_proj_live_{index}"
+            )
+            description = st.text_area(
+                "Enter your description",
+                placeholder="Enter points separated with comma",
+                value=project.get('description', ''),
+                key=f"edit_proj_desc_{index}"
+            )
             submitted = st.form_submit_button("Update Project")
 
             if submitted:
@@ -97,91 +190,104 @@ class User_Info:
                     "frontend_code_url": frontend_code_url,
                     "backend_code_url": backend_code_url,
                     "live_link": live_link,
-                    "description" : description
+                    "description": description
                 }
                 st.session_state.d['projects'] = st.session_state.projects
-                st.success("Project updated Successfully")
-                
-                
-                
-    def display_projects(self):
+                st.session_state.edit_project = None  # Close edit form after saving
+                self.save_data()  # Persist changes to local storage
+                st.success("Project updated successfully!")
+                st.rerun()
 
+    def add_project(self):
+        """Form to add a new project."""
+        with st.form(key='add_project_form_unique', clear_on_submit=True):
+            title = st.text_input("Project Title", key="new_proj_title")
+            tech_used = st.text_input("Technologies Used", key="new_proj_tech")
+            project_year = st.text_input("Project Year", key="new_proj_year")
+            frontend_code_url = st.text_input("Frontend Code URL", key="new_proj_fe")
+            backend_code_url = st.text_input("Backend Code URL", key="new_proj_be")
+            live_link = st.text_input("Live Demo URL", key="new_proj_live")
+            description = st.text_area(
+                "Enter your description",
+                placeholder="Enter points separated with comma",
+                key="new_proj_desc"
+            )
+            submitted = st.form_submit_button("➕ Add Project")
+
+            if submitted:
+                if title.strip():
+                    new_proj = {
+                        "title": title,
+                        "tech_used": tech_used,
+                        "project_year": project_year,
+                        "frontend_code_url": frontend_code_url,
+                        "backend_code_url": backend_code_url,
+                        "live_link": live_link,
+                        "description": description
+                    }
+                    st.session_state.projects.append(new_proj)
+                    st.session_state.d['projects'] = st.session_state.projects
+                    st.session_state.show_project_form = False
+                    self.save_data()  # Persist changes to local storage
+                    st.success("Project added successfully!")
+                    st.rerun()
+                else:
+                    st.warning("Please enter a Project Title.")
+
+    def display_projects(self):
+        """Main rendering method for the Projects section."""
         st.subheader("Project Details")
 
-        if len(st.session_state.projects) == 0:
-            st.info("No projects added yet")
-            return
+        if "projects" not in st.session_state:
+            st.session_state.projects = st.session_state.d.get("projects", [])
 
         if "edit_project" not in st.session_state:
             st.session_state.edit_project = None
 
+        if len(st.session_state.projects) == 0:
+            st.info("No projects added yet.")
+            return
+
         for index, project in enumerate(st.session_state.projects):
-
-            with st.expander(
-                f"{index+1}. {project['title'] if project['title'] else 'Untitled Project'}"
-            ):
-
-                st.write("### Title")
-                st.write(project["title"])
-                st.write("### Technologies")
-                st.write(project["tech_used"])
-                st.write("### Year")
-                st.write(project["project_year"])
-                st.write("### Frontend Code")
-                st.write(project["frontend_code_url"])
-                st.write("### Backend Code")
-                st.write(project["backend_code_url"])
-                st.write("### Live Link")
-                st.write(project["live_link"])
-                st.write("### Description")
-                st.write(project["description"])
-
-                col1, col2 = st.columns(2)
-
-                with col1:
-                    if st.button("✏ Edit", key=f"edit_{index}"):
-                        st.session_state.edit_project = index
-
-                with col2:
-                    if st.button("🗑 Delete", key=f"delete_{index}"):
-
-                        st.session_state.projects.pop(index)
-                        st.session_state.d["projects"] = st.session_state.projects
-
-                        if st.session_state.edit_project == index:
-                            st.session_state.edit_project = None
-
-                        st.rerun()
-
+            title_label = project.get('title') if project.get('title') else 'Untitled Project'
+            
+            with st.expander(f"{index+1}. {title_label}"):
+                # If currently editing this specific project, show the edit form directly inside
                 if st.session_state.edit_project == index:
-                    self.project_details(project, index)   
-                
-                
-    def add_project(self):
-        with st.form(key='project_',clear_on_submit=True):
-            title = st.text_input("Project Title")
-            tech_used = st.text_input("Technologies Used")
-            project_year = st.text_input("Project Year")
-            frontend_code_url = st.text_input("Frontend Code URL")
-            backend_code_url = st.text_input("Backend Code URL")
-            live_link = st.text_input("Live Demo URL")
-            description = st.text_area("Enter your description",placeholder="Enter points seprated with comma")
-            submitted = st.form_submit_button("Add Project")
-            if submitted:
-                st.session_state.projects.append({
-                    "title": title,
-                    "tech_used": tech_used,
-                    "project_year": project_year,
-                    "frontend_code_url": frontend_code_url,
-                    "backend_code_url": backend_code_url,
-                    "live_link": live_link,
-                    "description" : description
-                })
-                st.session_state.d['projects'] = st.session_state.projects
-                st.success("Project added Successfully")
-                st.session_state.show_project_form = False
-                st.rerun()
-                
+                    st.markdown("#### ✏ Edit Project Details")
+                    self.project_details(project, index)
+                    
+                    if st.button("Cancel Editing", key=f"cancel_edit_{index}"):
+                        st.session_state.edit_project = None
+                        st.rerun()
+                else:
+                    # Otherwise, show details and Edit/Delete buttons
+                    st.write("**Title:**", project.get("title", ""))
+                    st.write("**Technologies:**", project.get("tech_used", ""))
+                    st.write("**Year:**", project.get("project_year", ""))
+                    if project.get("frontend_code_url"):
+                        st.write("**Frontend Code:**", project.get("frontend_code_url"))
+                    if project.get("backend_code_url"):
+                        st.write("**Backend Code:**", project.get("backend_code_url"))
+                    if project.get("live_link"):
+                        st.write("**Live Link:**", project.get("live_link"))
+                    st.write("**Description:**", project.get("description", ""))
+
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        if st.button("✏ Edit", key=f"edit_btn_{index}"):
+                            st.session_state.edit_project = index
+                            st.rerun()
+
+                    with col2:
+                        if st.button("🗑 Delete", key=f"delete_btn_{index}"):
+                            st.session_state.projects.pop(index)
+                            st.session_state.d["projects"] = st.session_state.projects
+                            if st.session_state.edit_project == index:
+                                st.session_state.edit_project = None
+                            self.save_data()  # Persist changes to local storage
+                            st.success("Project deleted.")
+                            st.rerun()
                 
     def job_description(self):
         jd = st.text_area("Enter Job Description")
@@ -189,58 +295,119 @@ class User_Info:
         st.session_state.jd = jd
     
     
-    
-    def certification(self):
-    
-        st.subheader("Certifications")
-        st.write("=================================================")
-        st.write(st.session_state.d["certifications"])
-        st.write("=================================================")
-
-        certifications = []
-
-        num_certifications = st.number_input(
-            "Number of Certifications",
-            min_value=0,
-            max_value=10,
-            value=0
-        )
-
-        for i in range(num_certifications):
-            st.write(f"Certification {i+1}")
-
+  
+    def certification_details(self, cert, index):
+        """Form to edit an existing certification."""
+        with st.form(key=f'edit_cert_form_{index}', clear_on_submit=False):
             name = st.text_input(
                 "Certification Name",
-                key=f"cert_name_{i}"
+                value=cert.get('name', ''),
+                key=f"edit_cert_name_{index}"
             )
-
             issuer = st.text_input(
                 "Issuer / Organization",
-                key=f"cert_issuer_{i}"
+                value=cert.get('issuer', ''),
+                key=f"edit_cert_issuer_{index}"
             )
-
             year = st.text_input(
                 "Year",
-                key=f"cert_year_{i}"
+                value=cert.get('year', ''),
+                key=f"edit_cert_year_{index}"
             )
-
             url = st.text_input(
                 "Credential URL (optional)",
-                key=f"cert_url_{i}"
+                value=cert.get('credential_url', ''),
+                key=f"edit_cert_url_{index}"
             )
 
-            if name:
-                certifications.append({
+            submitted = st.form_submit_button("Update Certification")
+
+            if submitted:
+                st.session_state.certifications[index] = {
                     "name": name,
                     "issuer": issuer,
                     "year": year,
                     "credential_url": url
-                })
+                }
+                st.session_state.d['certifications'] = st.session_state.certifications
+                self.save_data()  # Persist changes to local storage
+                st.success("Certification updated successfully!")
+                st.rerun()
 
-        if st.button("Add Certificate"):
-            st.session_state.d["certifications"] = certifications
-        
-                
+    def add_certification(self):
+        """Form to add a new certification."""
+        with st.form(key='add_cert_form_unique', clear_on_submit=True):
+            name = st.text_input("Certification Name", key="new_cert_name")
+            issuer = st.text_input("Issuer / Organization", key="new_cert_issuer")
+            year = st.text_input("Year", key="new_cert_year")
+            url = st.text_input("Credential URL (optional)", key="new_cert_url")
+
+            submitted = st.form_submit_button("Add Certification")
+
+            if submitted:
+                if name.strip():
+                    new_cert = {
+                        "name": name,
+                        "issuer": issuer,
+                        "year": year,
+                        "credential_url": url
+                    }
+                    st.session_state.certifications.append(new_cert)
+                    st.session_state.d['certifications'] = st.session_state.certifications
+                    st.session_state.show_cert_form = False
+                    self.save_data()  # Persist changes to local storage
+                    st.success("Certification added successfully!")
+                    st.rerun()
+                else:
+                    st.warning("Please enter a Certification Name.")
+
+    def certification(self):
+        """Main rendering method for the Certifications section."""
+        st.subheader("Certifications")
+
+        # Initialize session state lists defensively
+        if 'certifications' not in st.session_state:
+            st.session_state.certifications = st.session_state.d.get("certifications", [])
+
+        # Clean string/dict items defensively if previous data was saved as simple strings
+        cleaned_certs = []
+        for item in st.session_state.certifications:
+            if isinstance(item, str):
+                cleaned_certs.append({"name": item, "issuer": "", "year": "", "credential_url": ""})
+            elif isinstance(item, dict):
+                cleaned_certs.append(item)
+        st.session_state.certifications = cleaned_certs
+        st.session_state.d['certifications'] = cleaned_certs
+
+        # Toggle Add Form
+        if "show_cert_form" not in st.session_state:
+            st.session_state.show_cert_form = False
+
+        col_btn1, col_btn2 = st.columns([1, 4])
+        with col_btn1:
+            if st.button("➕ Add Certification", key="toggle_add_cert_btn"):
+                st.session_state.show_cert_form = not st.session_state.show_cert_form
+
+        if st.session_state.show_cert_form:
+            self.add_certification()
+
+        # Display and edit existing certifications
+        if not st.session_state.certifications:
+            st.info("No certifications added yet.")
+        else:
+            for idx, cert in enumerate(st.session_state.certifications):
+                label = cert.get('name') if cert.get('name') else f"Certification #{idx+1}"
+                with st.expander(f"📜 {label}", expanded=False):
+                    self.certification_details(cert, idx)
+
+                    if st.button("🗑 Delete Certification", key=f"delete_cert_btn_{idx}"):
+                        st.session_state.certifications.pop(idx)
+                        st.session_state.d['certifications'] = st.session_state.certifications
+                        self.save_data()  # Persist changes to local storage
+                        st.success("Certification deleted.")
+                        st.rerun()
+
+    
         
     def user_info(self):
         
@@ -295,32 +462,14 @@ class User_Info:
         
         st.markdown('---')
 
-        #####Education Info#####
-        st.subheader("Education Details")
+        self.render_education_section()
         
-        education = dict()
-        
-        education_left_col , education_right_col = st.columns(2)
-
-        with education_left_col:
-            education['institute_name'] = st.text_input("Enter institute name", value=st.session_state.d['education']['institute_name'])
-            education['degree_certificate_name'] = st.text_input("Enter Degree/Certificate Name", value=st.session_state.d['education']['degree_certificate_name'])
-        with education_right_col:
-            education['location'] = st.text_input("Enter Address of Institute", value=st.session_state.d['education']['location'])
-            education['duration'] = st.text_input("Enter duration in format 2019-2023", value=st.session_state.d['education']['duration'])
-
-        st.session_state.d['education'] = education
         st.markdown('---')
-        
-        
-        #####Project Info#####
-
-        # st.subheader("Project Details")
-        
+    
         if "show_project_form" not in st.session_state:
             st.session_state.show_project_form = False
 
-        if st.button("Add Project"):
+        if st.button("➕ Add Project"):
             st.session_state.show_project_form = True
 
         if st.session_state.show_project_form:
