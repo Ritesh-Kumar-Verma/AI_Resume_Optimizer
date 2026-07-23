@@ -1,6 +1,8 @@
 import streamlit as st
 from streamlit_local_storage import LocalStorage
 import json
+from components.Create_Resume import Create_Resume
+
 class User_Info:
     
     def __init__(self):
@@ -177,6 +179,62 @@ class User_Info:
                 st.session_state.show_project_form = False
                 st.rerun()
                 
+                
+    def job_description(self):
+        jd = st.text_area("Enter Job Description")
+        
+        st.session_state.jd = jd
+    
+    
+    
+    def certification(self):
+    
+        st.subheader("Certifications")
+
+        certifications = []
+
+        num_certifications = st.number_input(
+            "Number of Certifications",
+            min_value=0,
+            max_value=10,
+            value=0
+        )
+
+        for i in range(num_certifications):
+            st.write(f"Certification {i+1}")
+
+            name = st.text_input(
+                "Certification Name",
+                key=f"cert_name_{i}"
+            )
+
+            issuer = st.text_input(
+                "Issuer / Organization",
+                key=f"cert_issuer_{i}"
+            )
+
+            year = st.text_input(
+                "Year",
+                key=f"cert_year_{i}"
+            )
+
+            url = st.text_input(
+                "Credential URL (optional)",
+                key=f"cert_url_{i}"
+            )
+
+            if name:
+                certifications.append({
+                    "name": name,
+                    "issuer": issuer,
+                    "year": year,
+                    "credential_url": url
+                })
+
+
+        st.session_state.d["certifications"] = certifications
+        
+                
         
     def user_info(self):
         
@@ -201,9 +259,9 @@ class User_Info:
         st.markdown('---')
         
         st.session_state.d['basic_info'] = basic_info
+        
         #####Technical Skills#####
 
-        
         st.subheader("Technical skills")
         technical_left_col, technical_right_col = st.columns(2)
         
@@ -224,9 +282,7 @@ class User_Info:
             
             
             technical_skill['tools'] = st.text_input("Tools like Vsc, IntelliJ",value=st.session_state.d['technical_skill']['tools'])
-            
         
-            
         st.session_state.d['technical_skill'] = technical_skill
         
         
@@ -253,7 +309,6 @@ class User_Info:
         
         #####Project Info#####
 
-        
         # st.subheader("Project Details")
         
         if "show_project_form" not in st.session_state:
@@ -265,14 +320,25 @@ class User_Info:
         if st.session_state.show_project_form:
             self.add_project()
             
-
         self.display_projects()
-                
-                
-
         
+        
+        self.certification()
+        
+        self.job_description()
+        
+                  
         if st.button("Create Resume"):
-            st.write(st.session_state.d)
-            # self.save_data()
             
+            
+            # st.write(st.session_state.d)
+            self.save_data()
+            
+             
+            resume_creator = Create_Resume(st.session_state.d,st.session_state.jd)
+                
+        
+            resume_creator.create_resume(
+                output_file="Abz.pdf"
+            )
 

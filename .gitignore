@@ -8,4 +8,5 @@ wheels/
 temp.txt
 # Virtual environments
 .venv
+.env
 temp.json
