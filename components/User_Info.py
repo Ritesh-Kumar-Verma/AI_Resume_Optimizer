@@ -60,11 +60,10 @@ class User_Info:
                 #     }]
 
         # if "projects" not in st.session_state:
-        
 
     
     def save_data(self):
-        data = json.dumps(st.session_state.d)        # d is dictionary
+        data = json.dumps(st.session_state.d)        # d is dictionary for whole user data
         
         self.local_storage.setItem(
             "resume_data",
@@ -100,14 +99,13 @@ class User_Info:
                 st.session_state.d['education'] = st.session_state.educations
                 st.success("Education updated Successfully")
                 st.rerun()
+                
     def render_education_section(self):
-        st.subheader("Education Details")
+        st.subheader("🎓 Education Details")
 
    
         if 'educations' not in st.session_state:
             st.session_state.educations = st.session_state.d.get('education', [])
-            
-            
             
         with st.expander("➕ Add New Education", expanded=False):
             with st.form(key="add_new_education", clear_on_submit=True):
@@ -127,6 +125,7 @@ class User_Info:
                     }
                     st.session_state.educations.append(new_edu)
                     st.session_state.d['education'] = st.session_state.educations
+                    self.save_data()
                     st.success("Education added successfully!")
                     st.rerun()
 
@@ -208,7 +207,7 @@ class User_Info:
             backend_code_url = st.text_input("Backend Code URL", key="new_proj_be")
             live_link = st.text_input("Live Demo URL", key="new_proj_live")
             description = st.text_area(
-                "Enter your description",
+                "Enter project description",
                 placeholder="Enter points separated with comma",
                 key="new_proj_desc"
             )
@@ -236,7 +235,7 @@ class User_Info:
 
     def display_projects(self):
         """Main rendering method for the Projects section."""
-        st.subheader("Project Details")
+        st.subheader("🚀 Project Details")
 
         if "projects" not in st.session_state:
             st.session_state.projects = st.session_state.d.get("projects", [])
@@ -363,7 +362,7 @@ class User_Info:
 
     def certification(self):
         """Main rendering method for the Certifications section."""
-        st.subheader("Certifications")
+        st.subheader("📜 Certifications")
 
         # Initialize session state lists defensively
         if 'certifications' not in st.session_state:
@@ -411,7 +410,7 @@ class User_Info:
         
     def user_info(self):
         
-        st.subheader("Enter your Details")
+        st.subheader("ℹ️ Enter your Details")
         
         basic_left_col , basic_right_col = st.columns(2)
         
@@ -435,7 +434,7 @@ class User_Info:
         
         #####Technical Skills#####
 
-        st.subheader("Technical skills")
+        st.subheader("⚡ Technical skills")
         technical_left_col, technical_right_col = st.columns(2)
         
         technical_skill = dict()
