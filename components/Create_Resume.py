@@ -42,6 +42,8 @@ class Create_Resume:
             return text
 
     def create_resume(self, output_file="resume.pdf"):
+        
+        
         response = self.client.chat.completions.create(
             model = self.model,
             messages=[
@@ -56,7 +58,9 @@ class Create_Resume:
         data = data.replace("```json", "")
         data = data.replace("```", "")
         data = data.strip()
-        # print(data)
+        print("=================================================================")
+        print(data)
+        print("=================================================================")
         try:
             resume = json.loads(data)
         except json.JSONDecodeError:

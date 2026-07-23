@@ -13,6 +13,8 @@ Goals:
 8. If the candidate has relevant experience, highlight it more prominently.
 9. Optimize project descriptions for ATS scanning by naturally including required keywords.
 10. Keep the resume concise and recruiter-friendly.
+11. Add all project and skills if no job description is added.
+12. Write summary for the user based on his education and project and experience if any.
 
 Input:
 You will receive:
@@ -72,8 +74,9 @@ JSON FORMAT:
             "title": "",
             "tech": "",
             "year": "",
-            "links": "",
-            "url": "",
+            "frontend_code_url": "",
+            "backend_code_url" : "",
+            "live_url": "",
             "points": [
                 "",
                 "",
@@ -133,7 +136,7 @@ Include:
 - Performance improvements
 
 CERTIFICATIONS:
-- Include only certifications relevant to the job.
+- Include all certifications.
 
 ATS KEYWORD STRATEGY:
 - Match job description terminology exactly where truthful.

@@ -14,6 +14,7 @@ class User_Info:
             if data:
                 st.session_state.d = data
                 st.session_state.projects = data['projects']
+                st.session_state.d["certifications"] = data['certifications']
             else:
                 st.session_state.d = {
                     "basic_info": {
@@ -40,7 +41,8 @@ class User_Info:
                         "location": "",
                         "duration": ""
                     },
-                    "projects": []
+                    "projects": [],
+                    "certifications" : []
                     }
                 st.session_state.projects = []
                 # st.session_state.projects = [{
@@ -66,10 +68,11 @@ class User_Info:
         )
     def load_data(self):
         data = self.local_storage.getItem("resume_data")
+
         if data is None:
             return {}
         data = json.loads(data)
-        return data 
+        return data
         
     def display_details(self):
         st.write(self.load_data())
@@ -190,6 +193,9 @@ class User_Info:
     def certification(self):
     
         st.subheader("Certifications")
+        st.write("=================================================")
+        st.write(st.session_state.d["certifications"])
+        st.write("=================================================")
 
         certifications = []
 
@@ -231,8 +237,8 @@ class User_Info:
                     "credential_url": url
                 })
 
-
-        st.session_state.d["certifications"] = certifications
+        if st.button("Add Certificate"):
+            st.session_state.d["certifications"] = certifications
         
                 
         
@@ -336,9 +342,6 @@ class User_Info:
             
              
             resume_creator = Create_Resume(st.session_state.d,st.session_state.jd)
-                
-        
             resume_creator.create_resume(
                 output_file="Abz.pdf"
             )
-

@@ -1,9 +1,9 @@
-
+from reportlab.lib.pagesizes import A4
 import streamlit as st
 from reportlab.lib.pagesizes import LETTER
 from reportlab.lib.styles import ParagraphStyle
-from reportlab.lib.enums import TA_CENTER, TA_LEFT
-from reportlab.lib.colors import black
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
+from reportlab.lib.colors import HexColor, black
 from reportlab.platypus import (
     SimpleDocTemplate,
     Paragraph,
@@ -21,9 +21,7 @@ class ResumePDFBuilder:
     def __init__(self, resume, output_file="Resume.pdf"):
         self.resume = resume
         self.output_file = output_file
-
         self._create_styles()
-
 
     # =====================================================
     # STYLES
@@ -34,74 +32,98 @@ class ResumePDFBuilder:
         self.name_style = ParagraphStyle(
             "Name",
             fontName="Helvetica-Bold",
-            fontSize=22,
+            fontSize=20,
             alignment=TA_CENTER,
-            leading=26
+            leading=24,
+            textColor=HexColor("#1A1A1A")
         )
-
 
         self.contact_style = ParagraphStyle(
             "Contact",
+            fontName="Helvetica",
             fontSize=9,
             alignment=TA_CENTER,
-            leading=12
+            leading=13,
+            textColor=HexColor("#333333")
         )
-
 
         self.section_style = ParagraphStyle(
             "Section",
             fontName="Helvetica-Bold",
-            fontSize=12,
-            spaceBefore=12,
-            spaceAfter=5,
-            leading=14
+            fontSize=11,
+            spaceBefore=8,
+            spaceAfter=2,
+            leading=13,
+            textColor=HexColor("#000000"),
+            leftIndent=0
         )
-
 
         self.body_style = ParagraphStyle(
-            "Body",
-            fontSize=9.5,
+            "BodyLeft",
+            fontName="Helvetica",
+            fontSize=9,
             leading=12,
-            alignment=TA_LEFT
+            alignment=TA_LEFT,
+            textColor=HexColor("#222222"),
+            leftIndent=0,
+            firstLineIndent=0
         )
 
+        self.body_right_style = ParagraphStyle(
+            "BodyRight",
+            fontName="Helvetica",
+            fontSize=9,
+            leading=12,
+            alignment=TA_RIGHT,
+            textColor=HexColor("#222222"),
+            rightIndent=0
+        )
 
         self.small_style = ParagraphStyle(
             "Small",
-            fontSize=8.8,
-            leading=11
+            fontName="Helvetica",
+            fontSize=8.5,
+            leading=11,
+            alignment=TA_LEFT,
+            textColor=HexColor("#1A0DAB"),
+            leftIndent=0
         )
-
 
     # =====================================================
     # HELPERS
     # =====================================================
 
-    def _section(self, title, story):
+    def _ensure_url(self, url):
+        if not url:
+            return ""
+        url = url.strip()
+        if not (url.startswith("http://") or url.startswith("https://") or url.startswith("mailto:")):
+            return "https://" + url
+        return url
 
+    def _section(self, title, story):
         story.append(
             Paragraph(
                 title.upper(),
                 self.section_style
             )
         )
-
         story.append(
             HRFlowable(
                 width="100%",
                 thickness=0.8,
-                color=black
+                color=black,
+                spaceAfter=5,
+                spaceBefore=2,
+                hAlign="LEFT"
             )
         )
 
-
     def _bullet(self, text):
-
         return Paragraph(
-            "• " + text,
+            f"• {text}",
             self.body_style
         )
-
 
     # =====================================================
     # BUILD PDF
@@ -110,254 +132,277 @@ class ResumePDFBuilder:
     def create(self):
 
         doc = SimpleDocTemplate(
-
             self.output_file,
-
-            pagesize=LETTER,
-
-            leftMargin=0.5*inch,
-
-            rightMargin=0.5*inch,
-
-            topMargin=0.45*inch,
-
-            bottomMargin=0.45*inch
+            pagesize=A4,
+            leftMargin=0.5 * inch,
+            rightMargin=0.5 * inch,
+            topMargin=0.45 * inch,
+            bottomMargin=0.45 * inch
         )
 
+        # Printable area: 8.5" - (0.5" left + 0.5" right) = 7.5"
+        col_left_width = 5.75 * inch
+        col_right_width = 1.75 * inch
 
         story = []
 
-
         # ---------------- HEADER ----------------
-        
-        # st.write("=================================================")
-        
-        # st.write(self.resume)
-        
-        # st.write("=================================================")
-        story.append(
-            Paragraph(
-                self.resume["name"],
-                self.name_style
+
+        if self.resume.get("name"):
+            story.append(
+                Paragraph(
+                    self.resume.get("name"),
+                    self.name_style
+                )
             )
-        )
 
+        story.append(Spacer(1, 4))
 
-        story.append(
-            Spacer(1, 4)
-        )
+        email = self.resume.get("email", "")
+        email_url = f"mailto:{email}" if email else ""
+        phone = self.resume.get("phone", "")
+        location = self.resume.get("location", "")
 
+        linkedin_url = self._ensure_url(self.resume.get("linkedin", ""))
+        github_url = self._ensure_url(self.resume.get("github", ""))
+        portfolio_url = self._ensure_url(self.resume.get("portfolio", ""))
 
-        contact = f"""
-        {self.resume['location']} |
-        {self.resume['phone']} |
-        <link href="mailto:{self.resume['email']}">
-        {self.resume['email']}
-        </link>
-        <br/>
-        <link href="{self.resume['portfolio']}">
-        {self.resume['portfolio']}
-        </link>
-        <br/>
-        <link href="{self.resume['linkedin']}">
-        LinkedIn
-        </link>
-        |
-        <link href="{self.resume['github']}">
-        GitHub
-        </link>
-        """
+        header_parts_line1 = []
+        if location:
+            header_parts_line1.append(location)
+        if phone:
+            header_parts_line1.append(phone)
+        if email:
+            header_parts_line1.append(f'<a href="{email_url}">{email}</a>')
 
+        header_parts_line2 = []
+        if portfolio_url:
+            header_parts_line2.append(f'<a href="{portfolio_url}">Portfolio</a>')
+        if linkedin_url:
+            header_parts_line2.append(f'<a href="{linkedin_url}">LinkedIn</a>')
+        if github_url:
+            github_label = self.resume.get("github", "GitHub").replace("https://", "").replace("http://", "")
+            header_parts_line2.append(f'<a href="{github_url}">{github_label}</a>')
+
+        contact_text = f"{' | '.join(header_parts_line1)}<br/>{' | '.join(header_parts_line2)}"
 
         story.append(
             Paragraph(
-                contact,
+                contact_text,
                 self.contact_style
             )
         )
 
-
-        story.append(
-            Spacer(1, 10)
-        )
-
+        story.append(Spacer(1, 6))
 
         # ---------------- SUMMARY ----------------
 
-        self._section(
-            "Summary",
-            story
-        )
-
-
-        story.append(
-            Paragraph(
-                self.resume["summary"],
-                self.body_style
+        if self.resume.get("summary"):
+            self._section("Summary", story)
+            story.append(
+                Paragraph(
+                    self.resume["summary"],
+                    self.body_style
+                )
             )
-        )
-
 
         # ---------------- EDUCATION ----------------
 
-        self._section(
-            "Education",
-            story
-        )
+        if "education" in self.resume and self.resume["education"]:
+            self._section("Education", story)
 
-
-        for edu in self.resume["education"]:
-
-            data = [
-
-                [
-
-                    Paragraph(
-                        f"""
-                        <b>{edu['college']}</b><br/>
-                        {edu['degree']}
-                        """,
-                        self.body_style
-                    ),
-
-
-                    Paragraph(
-                        f"""
-                        {edu['location']}<br/>
-                        <b>{edu['year']}</b>
-                        """,
-                        self.body_style
-                    )
-
+            for edu in self.resume["education"]:
+                data = [
+                    [
+                        Paragraph(f"<b>{edu.get('college', '')}</b>", self.body_style),
+                        Paragraph(f"<b>{edu.get('year', '')}</b>", self.body_right_style)
+                    ],
+                    [
+                        Paragraph(f"{edu.get('degree', '')}", self.body_style),
+                        Paragraph(f"{edu.get('location', '')}", self.body_right_style)
+                    ]
                 ]
 
-            ]
-
-
-            table = Table(
-                data,
-                colWidths=[4.5*inch, 1.5*inch]
-            )
-
-
-            table.setStyle(
-                TableStyle(
-                    [
-                        (
-                            "VALIGN",
-                            (0,0),
-                            (-1,-1),
-                            "TOP"
-                        ),
-
-                        (
-                            "ALIGN",
-                            (1,0),
-                            (1,0),
-                            "RIGHT"
-                        )
-                    ]
+                table = Table(data, colWidths=[col_left_width, col_right_width], hAlign='LEFT')
+                table.setStyle(
+                    TableStyle([
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                        ("TOPPADDING", (0, 0), (-1, -1), 0),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+                    ])
                 )
-            )
-
-
-            story.append(table)
-
-
+                story.append(table)
+                story.append(Spacer(1, 4))
 
         # ---------------- SKILLS ----------------
 
-        self._section(
-            "Technical Skills",
-            story
-        )
+        if "skills" in self.resume and self.resume["skills"]:
+            self._section("Technical Skills", story)
 
-
-        for skill, value in self.resume["skills"]:
-
-            story.append(
-                Paragraph(
-                    f"<b>{skill}:</b> {value}",
-                    self.body_style
-                )
-            )
-
-
+            for item in self.resume["skills"]:
+                if isinstance(item, (tuple, list)) and len(item) >= 2:
+                    category, skill_list = item[0], item[1]
+                    story.append(self._bullet(f"<b>{category}:</b> {skill_list}"))
+                elif isinstance(item, str):
+                    story.append(self._bullet(item))
 
         # ---------------- PROJECTS ----------------
 
-        self._section(
-            "Projects",
-            story
-        )
+        if "projects" in self.resume and self.resume["projects"]:
+            self._section("Projects", story)
 
+            for project in self.resume["projects"]:
+                block = []
 
-        for project in self.resume["projects"]:
+                title_text = f"<b>{project.get('title', '')}</b>"
+                if project.get("tech"):
+                    title_text += f" | <i>{project.get('tech')}</i>"
 
-            block = []
+                data = [
+                    [
+                        Paragraph(title_text, self.body_style),
+                        Paragraph(f"<b>{project.get('year', '')}</b>", self.body_right_style)
+                    ]
+                ]
 
-
-            block.append(
-
-                Paragraph(
-                    f"""
-                    <b>{project['title']}</b>
-                    |
-                    {project['tech']}
-                    <br/>
-                    <b>{project['year']}</b>
-                    """,
-                    self.body_style
+                table = Table(data, colWidths=[col_left_width, col_right_width], hAlign='LEFT')
+                table.setStyle(
+                    TableStyle([
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 0),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+                        ("TOPPADDING", (0, 0), (-1, -1), 0),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+                    ])
                 )
+                block.append(table)
 
-            )
+                # Process Links
+                project_links = []
 
+                if project.get("frontend_code_url"):
+                    url = self._ensure_url(project["frontend_code_url"])
+                    project_links.append(f'<a href="{url}">GitHub Frontend</a>')
 
-            block.append(
+                if project.get("backend_code_url"):
+                    url = self._ensure_url(project["backend_code_url"])
+                    project_links.append(f'<a href="{url}">GitHub Backend</a>')
 
-                Paragraph(
-                    f"""
-                    <link href="{project['url']}">
-                    {project['links']}
-                    </link>
-                    """,
-                    self.small_style
-                )
+                if project.get("live_url"):
+                    url = self._ensure_url(project["live_url"])
+                    project_links.append(f'<a href="{url}">Live</a>')
 
-            )
+                if project_links:
+                    block.append(
+                        Paragraph(
+                            f"• <b>Links:</b> {' | '.join(project_links)}",
+                            self.small_style
+                        )
+                    )
 
+                # Bullet points
+                for point in project.get("points", []):
+                    if point:
+                        block.append(self._bullet(point))
 
-            for point in project["points"]:
-
-                block.append(
-                    self._bullet(point)
-                )
-
-
-            block.append(
-                Spacer(1, 6)
-            )
-
-
-            story.append(
-                KeepTogether(block)
-            )
-
-
+                block.append(Spacer(1, 5))
+                story.append(KeepTogether(block))
 
         # ---------------- CERTIFICATIONS ----------------
 
-        self._section(
-            "Certifications",
-            story
-        )
+        if "certifications" in self.resume and self.resume["certifications"]:
+            self._section("Certifications", story)
 
-
-        for cert in self.resume["certifications"]:
-
-            story.append(
-                self._bullet(cert)
-            )
-
+            for cert in self.resume["certifications"]:
+                if cert:
+                    story.append(self._bullet(cert))
 
         doc.build(story)
+
+
+# =====================================================
+# STREAMLIT UI
+# =====================================================
+
+st.title("📄 AI Resume Builder")
+
+ai_output = {
+    "name": "RITESH KUMAR VERMA",
+    "location": "Noida, Uttar Pradesh",
+    "phone": "9984899046",
+    "email": "ritesh782002@gmail.com",
+    "portfolio": "https://ritesh-portfolio.example.com",
+    "linkedin": "https://linkedin.com/in/ritesh-verma-512468244",
+    "github": "https://github.com/Ritesh-Kumar-Verma",
+
+    "summary": "Highly motivated and experienced full-stack developer with expertise in Java, JavaScript, and Python...",
+
+    "education": [
+        {
+            "college": "United College of Engineering and Research",
+            "location": "Prayagraj, Uttar Pradesh",
+            "degree": "B.TECH CSE",
+            "year": "2019-2023"
+        }
+    ],
+
+    "skills": [
+        ["Languages", "Java, JavaScript, Python"],
+        ["Frontend", "React.js, HTML5, CSS3, Tailwind CSS"],
+        ["Backend", "Spring Boot, Node.js, REST APIs, JWT Authentication"],
+        ["Database", "MySQL, PostgreSQL"],
+        ["AI/ML/Data", "LLM Integration (Gemini API, Groq API), Prompt Engineering, Resume Parsing"],
+        ["Tools", "Git, GitHub, VS Code, IntelliJ IDEA"]
+    ],
+
+    "projects": [
+        {
+            "title": "AI Job Search Platform",
+            "tech": "React.js, Spring Boot, PostgreSQL",
+            "year": "2026",
+            "frontend_code_url": "https://github.com/Ritesh-Kumar-Verma/job-frontend",
+            "backend_code_url": "https://github.com/Ritesh-Kumar-Verma/job-backend",
+            "live_url": "https://ai-job-search.example.com",
+            "points": [
+                "Developed an AI-powered job search platform to match candidates with relevant job opportunities using Spring Boot and React.js.",
+                "Built an AI Resume Engine using Gemini API with Groq fallback to extract skills and generate summaries.",
+                "Implemented predictive match scoring to calculate compatibility between user profiles and job requirements using REST APIs and PostgreSQL."
+            ]
+        },
+        {
+            "title": "Mapify",
+            "tech": "React.js, Spring Boot, PostgreSQL, Leaflet",
+            "year": "2025",
+            "frontend_code_url": "https://github.com/Ritesh-Kumar-Verma/mapify-frontend",
+            "backend_code_url": "https://github.com/Ritesh-Kumar-Verma/mapify-backend",
+            "live_url": "https://mapify.example.com",
+            "points": [
+                "Built a full-stack real-time location sharing app using React.js and Leaflet with interactive map visualization.",
+                "Developed secure Spring Boot REST APIs with JWT authentication and PostgreSQL for user and location data management.",
+                "Integrated frontend and backend for live location updates, friend requests, and secure API communication."
+            ]
+        }
+    ],
+
+    "certifications": [
+        "Core and Advanced Java",
+        "MERN Stack"
+    ]
+}
+
+if st.button("Generate Resume PDF"):
+    output_file = "Generated_Resume.pdf"
+    builder = ResumePDFBuilder(ai_output, output_file)
+    builder.create()
+
+    st.success("PDF generated successfully with flush alignment!")
+
+    with open(output_file, "rb") as file:
+        st.download_button(
+            label="Download PDF",
+            data=file,
+            file_name=output_file,
+            mime="application/pdf"
+        )
