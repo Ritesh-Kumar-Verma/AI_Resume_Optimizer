@@ -2,7 +2,6 @@
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
-
 from components.Resume_pdf import ResumePDFBuilder
 import json
 
@@ -15,18 +14,16 @@ class Create_Resume:
     def __init__(self,user_info,job_description):
         self.api_key=os.environ.get("OPENAI_API_KEY")
         self.base_url=os.environ.get("BASE_URL")
-        self.model=os.environ.get("MODEL_NAME")
-        self.client = OpenAI(api_key= self.api_key
-                    ,base_url=self.base_url
+        self.model_name=os.environ.get("MODEL_NAME")
+        self.client = OpenAI(api_key= self.api_key,
+                    base_url=self.base_url
                     )
-        
         self.user_info = user_info
         
         
         
         self.job_description = job_description
         
-
     
 
     def create_prompt(self,file_path="prompt.txt"):
@@ -44,7 +41,7 @@ class Create_Resume:
         
         
         response = self.client.chat.completions.create(
-            model = self.model,
+            model = self.model_name,
             messages=[
                 {
                     "role": "user",

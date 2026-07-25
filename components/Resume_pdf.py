@@ -208,7 +208,7 @@ class ResumePDFBuilder:
 
         # ---------------- EDUCATION ----------------
 
-        if "education" in self.resume and self.resume["education"]:
+        if self.resume.get("education"):
             self._section("Education", story)
 
             for edu in self.resume["education"]:
@@ -238,7 +238,7 @@ class ResumePDFBuilder:
 
         # ---------------- SKILLS ----------------
 
-        if "skills" in self.resume and self.resume["skills"]:
+        if self.resume.get("skills"):
             self._section("Technical Skills", story)
 
             for item in self.resume["skills"]:
@@ -250,7 +250,7 @@ class ResumePDFBuilder:
 
         # ---------------- PROJECTS ----------------
 
-        if "projects" in self.resume and self.resume["projects"]:
+        if self.resume.get("projects"):
             self._section("Projects", story)
 
             for project in self.resume["projects"]:
@@ -312,7 +312,7 @@ class ResumePDFBuilder:
 
         # ---------------- CERTIFICATIONS ----------------
 
-        if "certifications" in self.resume and self.resume["certifications"]:
+        if self.resume.get("certifications"):
             self._section("Certifications", story)
 
             for cert in self.resume["certifications"]:

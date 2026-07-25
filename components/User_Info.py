@@ -2,6 +2,7 @@ import streamlit as st
 from streamlit_local_storage import LocalStorage
 import json
 from components.Create_Resume import Create_Resume
+from components.User_Info_Extractor import User_Info_Extractor
 
 class User_Info:
     
@@ -107,8 +108,8 @@ class User_Info:
         if 'educations' not in st.session_state:
             st.session_state.educations = st.session_state.d.get('education', [])
             
-        with st.expander("➕ Add New Education", expanded=False):
-            with st.form(key="add_new_education", clear_on_submit=True):
+        with (st.expander("➕ Add New Education", expanded=False),
+            st.form(key="add_new_education", clear_on_submit=True)):
                 college = st.text_input("Institute/College Name")
                 location = st.text_input("Location")
                 degree = st.text_input("Degree/Certificate Name")
@@ -408,11 +409,16 @@ class User_Info:
 
     
         
-    def user_info(self):
+    def user_info_manual(self):
+        
+        
+        
         
         st.subheader("ℹ️ Enter your Details")
         
         basic_left_col , basic_right_col = st.columns(2)
+        
+        
         
         #####Basic Info#####
         basic_info = dict()
@@ -495,3 +501,34 @@ class User_Info:
             resume_creator.create_resume(
                 output_file=resume_name
             )
+    def user_info_from_pdf(self):
+        
+        st.write("Upload old resume to extract details.")
+        
+        file  = st.file_uploader("")
+        
+        if st.button("Get User Info"):
+            
+            user_info_extractor = User_Info_Extractor() 
+            
+            resume_text = user_info_extractor.extract_user_info(file)
+            resume = json.loads(resume_text)
+            st.write(resume)
+            
+            st.session_state.d = resume
+            self.save_data()
+            
+        
+        
+        
+    def user_info(self):
+        
+        manual , from_pdf = st.tabs(['Manual','By_PDF'])
+        
+        with manual:
+            self.user_info_manual()
+
+        with from_pdf:
+            self.user_info_from_pdf()
+        
+        
