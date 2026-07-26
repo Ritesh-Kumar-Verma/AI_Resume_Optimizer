@@ -20,7 +20,7 @@ Goals:
 8. If the candidate has relevant experience, highlight it more prominently.
 9. Optimize project descriptions for ATS scanning by naturally including required keywords.
 10. Keep the resume concise and recruiter-friendly.
-11. Add all project and skills if no job description is added.
+11. If no job description is added then only add all project and skills.
 12. Write summary for the user based on his education and project and experience if any.
 
 Input:
@@ -35,6 +35,7 @@ Analyze the job description:
 - Extract responsibilities
 - Extract important ATS keywords
 - Identify the ideal candidate profile
+- If no job description added then just fill the json with users data
 
 Then customize the resume accordingly.
 
