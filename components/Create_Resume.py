@@ -47,7 +47,8 @@ class Create_Resume:
                     "role": "user",
                     "content": self.create_prompt()
                 }
-            ]
+            ],
+            response_format={"type": "json_object"}   
         )
         
         
