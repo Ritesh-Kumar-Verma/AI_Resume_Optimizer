@@ -49,14 +49,19 @@ class Create_Resume:
                 }
             ]
         )
+        
+        
+        # print("=================================================================")
+        # print(type(response.choices[0].message.content))
+        # print("=================================================================")
+        
+        
+      
 
         data = (response.choices[0].message.content)
         data = data.replace("```json", "")
         data = data.replace("```", "")
         data = data.strip()
-        # print("=================================================================")
-        # print(data)
-        # print("=================================================================")
         try:
             resume = json.loads(data)
         except json.JSONDecodeError:
