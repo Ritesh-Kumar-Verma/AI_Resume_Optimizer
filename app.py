@@ -1,8 +1,8 @@
 
 import streamlit as st
-from components.User_Info import User_Info
 from streamlit_local_storage import LocalStorage
 
+from components.User_Info import User_Info
 
 st.set_page_config(layout='wide')
 
@@ -19,7 +19,5 @@ if __name__ == '__main__':
     
     user_Info.user_info()
     
-   
     
-  
-         
+    

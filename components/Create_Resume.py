@@ -37,7 +37,7 @@ class Create_Resume:
             
             return text
 
-    def create_resume(self, output_file="resume.pdf"):
+    def create_resume(self, output_file):
         
         
         response = self.client.chat.completions.create(
@@ -64,9 +64,12 @@ class Create_Resume:
             print(data)
             return
 
-        obj = ResumePDFBuilder(resume=resume,output_file=output_file)
+        builder = ResumePDFBuilder(resume=resume,output_file=output_file)
 
-        obj.create()
+        pdf_file = builder.create()
+        
+        
+        return pdf_file
 
         # print(response)
 

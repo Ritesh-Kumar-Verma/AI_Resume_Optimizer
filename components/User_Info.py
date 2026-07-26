@@ -485,50 +485,76 @@ class User_Info:
         
         self.certification()
         
-        self.job_description()
         
-        resume_name = st.text_input("Enter Name for Resume")
                   
-        if st.button("Create Resume"):
+        if st.button("Save Data"):
             
             
             # st.write(st.session_state.d)
-            self.save_data()
+            with st.spinner("Saving Data..."):
+                
+                self.save_data()
+                st.success("Saved Successfully.")
+    
+    def get_resume(self,resume_name="resume.pdf"):
+        self.job_description()
+        if resume_name == '':
+            resume_name='resume.pdf'
+        
+        if not resume_name.endswith('.pdf'):
+            resume_name+='.pdf'
+        
+        if "pdf_data" not in st.session_state:
+            st.session_state.pdf_data = None
+        
+        if st.button("Generate Resume"):
+            with st.spinner("Generating Resume..."):    
+                resume_creator = Create_Resume(st.session_state.d,st.session_state.jd)
+                st.session_state.pdf_data = resume_creator.create_resume(
+                    output_file=resume_name
+                )
+                st.success("PDF Generated Successfully")
+            
+            st.download_button(label="Download Resume",
+                               data=st.session_state.pdf_data,
+                               file_name= resume_name,
+                               mime="application/pdf"
+                               )
             
             
-             
-            resume_creator = Create_Resume(st.session_state.d,st.session_state.jd)
-            resume_creator.create_resume(
-                output_file=resume_name
-            )
     def user_info_from_pdf(self):
         
-        st.write("Upload old resume to extract details.")
+        st.write("Upload resume to extract details.")
         
         file  = st.file_uploader("")
         
         if st.button("Get User Info"):
-            
-            user_info_extractor = User_Info_Extractor() 
-            
-            resume_text = user_info_extractor.extract_user_info(file)
-            resume = json.loads(resume_text)
-            st.write(resume)
-            
-            st.session_state.d = resume
-            self.save_data()
-            
         
-        
-        
+            if not file:
+                st.error("Select a valid file")
+            else:            
+                user_info_extractor = User_Info_Extractor() 
+                resume_text = user_info_extractor.extract_user_info(file)
+                resume = json.loads(resume_text)
+                st.write(resume)
+                
+                st.session_state.d = resume
+                self.save_data()
+              
     def user_info(self):
         
-        manual , from_pdf = st.tabs(['Manual','By_PDF'])
+        manual , from_pdf, get_resume = st.tabs(['Manual','By_PDF','Get Resume'])
         
         with manual:
             self.user_info_manual()
 
         with from_pdf:
             self.user_info_from_pdf()
+        
+        with get_resume:
+            resume_name = st.text_input("Enter Name for Resume")
+            self.get_resume(resume_name=resume_name)
+            
+            
         
         

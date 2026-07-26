@@ -14,7 +14,7 @@ from reportlab.platypus import (
     KeepTogether
 )
 from reportlab.lib.units import inch
-
+import io
 
 class ResumePDFBuilder:
 
@@ -130,9 +130,10 @@ class ResumePDFBuilder:
     # =====================================================
 
     def create(self):
-
+        pdf_buffer = io.BytesIO()
         doc = SimpleDocTemplate(
-            self.output_file,
+            pdf_buffer,
+            # self.output_file,                            #to save in local storage but not for deployed version
             pagesize=A4,
             leftMargin=0.5 * inch,
             rightMargin=0.5 * inch,
@@ -320,3 +321,6 @@ class ResumePDFBuilder:
                     story.append(self._bullet(cert))
 
         doc.build(story)
+        pdf_bytes = pdf_buffer.getvalue()
+        pdf_buffer.close()
+        return pdf_bytes
