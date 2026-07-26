@@ -86,7 +86,12 @@ JSON FORMAT:
     ],
 
     "certifications": [
-        ""
+        {
+        "name": "",
+        "issuer": "",
+        "year": "",
+        "credential_url": ""
+      }
     ]
 }
 

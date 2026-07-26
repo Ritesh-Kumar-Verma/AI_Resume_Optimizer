@@ -55,6 +55,11 @@ class Create_Resume:
         # print(type(response.choices[0].message.content))
         # print("=================================================================")
         
+        #for testing
+        # with open("temp.txt",'r') as file:
+        #     r = file.read()
+            
+        # data = r
         
       
 

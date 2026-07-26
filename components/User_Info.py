@@ -514,13 +514,13 @@ class User_Info:
                     output_file=resume_name
                 )
                 st.success("PDF Generated Successfully")
-            
-            st.download_button(label="Download Resume",
-                               data=st.session_state.pdf_data,
-                               file_name= resume_name,
-                               mime="application/pdf"
-                               )
-            
+            if st.session_state.pdf_data:    
+                st.download_button(label="Download Resume",
+                                data=st.session_state.pdf_data,
+                                file_name= resume_name,
+                                mime="application/pdf"
+                                )
+                
             
     def user_info_from_pdf(self):
         
