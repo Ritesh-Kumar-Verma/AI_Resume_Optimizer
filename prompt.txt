@@ -22,6 +22,7 @@ Goals:
 10. Keep the resume concise and recruiter-friendly.
 11. If no job description is added then only add all project and skills.
 12. Write summary for the user based on his education and project and experience if any.
+13. Add all certifications.
 
 Input:
 You will receive:
