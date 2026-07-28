@@ -101,6 +101,9 @@ JSON FORMAT:
         "year": "",
         "credential_url": ""
       }
+    ],
+    'achievements':[
+        ""
     ]
 }
 
@@ -151,7 +154,10 @@ Include:
 - Performance improvements
 
 CERTIFICATIONS:
-- Include all certifications.
+- Add all certifications.
+
+ACHIEVEMENTS:
+- Add all achievements.
 
 ATS KEYWORD STRATEGY:
 - Match job description terminology exactly where truthful.

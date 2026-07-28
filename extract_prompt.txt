@@ -55,6 +55,9 @@ You are an expert Resume Parsing System. Your task is to extract structured info
         "year": "",
         "credential_url": ""
       }
+    ],
+    'achievements':[
+      ""
     ]
   
 }

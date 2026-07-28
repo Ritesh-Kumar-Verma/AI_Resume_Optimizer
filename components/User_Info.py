@@ -407,6 +407,81 @@ class User_Info:
                         st.success("Certification deleted.")
                         st.rerun()
 
+    def achievements(self):
+        st.subheader("🏆 Achievements")
+
+        # Initialize session state
+        if "achievements" not in st.session_state:
+            st.session_state.achievements = st.session_state.d.get("achievements", [])
+
+        st.session_state.d["achievements"] = st.session_state.achievements
+
+        # Toggle Add Form
+        if "show_achievement_form" not in st.session_state:
+            st.session_state.show_achievement_form = False
+
+        col_btn1, col_btn2 = st.columns([1, 4])
+        with col_btn1:
+            if st.button("➕ Add Achievement", key="toggle_add_achievement_btn"):
+                st.session_state.show_achievement_form = (
+                    not st.session_state.show_achievement_form
+                )
+
+        # Add Achievement Form
+        if st.session_state.show_achievement_form:
+            self.add_achievement()
+
+        # Display existing achievements
+        if not st.session_state.achievements:
+            st.info("No achievements added yet.")
+        else:
+            for idx, achievement in enumerate(st.session_state.achievements):
+                with st.expander(f"🏆 Achievement #{idx+1}", expanded=False):
+                    new_value = st.text_area(
+                        "Achievement",
+                        value=achievement,
+                        key=f"achievement_{idx}",
+                        height=80,
+                    )
+
+                    st.session_state.achievements[idx] = new_value
+                    st.session_state.d["achievements"] = st.session_state.achievements
+
+                    if st.button(
+                        "🗑 Delete Achievement",
+                        key=f"delete_achievement_{idx}",
+                    ):
+                        st.session_state.achievements.pop(idx)
+                        st.session_state.d["achievements"] = (
+                            st.session_state.achievements
+                        )
+                        self.save_data()
+                        st.success("Achievement deleted.")
+                        st.rerun()
+    
+    def add_achievement(self):
+
+        with st.form("add_achievement_form", clear_on_submit=True):
+            achievement = st.text_area(
+                "Achievement",
+                placeholder="e.g. Solved 500+ LeetCode problems",
+                height=80,
+            )
+
+            submitted = st.form_submit_button("Add Achievement")
+
+            if submitted:
+                if achievement.strip():
+                    st.session_state.achievements.append(achievement.strip())
+                    st.session_state.d["achievements"] = (
+                        st.session_state.achievements
+                    )
+                    self.save_data()
+                    st.success("Achievement added successfully.")
+                    st.session_state.show_achievement_form = False
+                    st.rerun()
+                else:
+                    st.error("Achievement cannot be empty.")
     
         
     def user_info_manual(self):
@@ -421,7 +496,7 @@ class User_Info:
         
         
         #####Basic Info#####
-        basic_info = dict()
+        basic_info = {}
         with basic_left_col:
             basic_info['name'] = st.text_input("Enter your name",value=st.session_state.d['basic_info']['name'])
             basic_info['phone_number'] = st.text_input("Enter your phone number",value=st.session_state.d['basic_info']['phone_number'])
@@ -443,7 +518,7 @@ class User_Info:
         st.subheader("⚡ Technical skills")
         technical_left_col, technical_right_col = st.columns(2)
         
-        technical_skill = dict()
+        technical_skill = {}
         
         with technical_left_col:
             
@@ -484,6 +559,8 @@ class User_Info:
         
         
         self.certification()
+        
+        self.achievements()
         
         
                   
